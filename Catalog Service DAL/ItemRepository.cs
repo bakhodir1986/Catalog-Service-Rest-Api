@@ -30,6 +30,14 @@ namespace Catalog_Service_DAL
             }
         }
 
+        public Item GetById(Guid id)
+        {
+            using (var context = new CatalogDbContext())
+            {
+                return context.Items.Find(id);
+            }
+        }
+
         public void Update(Item item)
         {
             using (var context = new CatalogDbContext())

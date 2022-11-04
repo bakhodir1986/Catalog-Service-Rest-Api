@@ -18,17 +18,6 @@ namespace Catalog_Service_BLL
             this.itemRepository = itemRepository;
         }
 
-        /*
-            List of categories
-            List of Items (filtration by category id and pagination)
-            Add category
-            Add item
-            Update category
-            Update item
-            Delete Item
-            Delete category (with the related items)
-        */
-
         public IEnumerable<Category> GetCategories()
         {
             return categoryRepository.GetAll();
@@ -70,6 +59,45 @@ namespace Catalog_Service_BLL
             selectedCategory.Parent = category.Parent;
 
             categoryRepository.Update(selectedCategory);
+        }
+
+        public void UpdateItem(Item item)
+        {
+            var selectedItem = itemRepository.GetById(item.Id);
+            if (selectedItem == null) return;
+
+            selectedItem.Name = item.Name;
+            selectedItem.Image = item.Image;
+            selectedItem.Price = item.Price;
+            selectedItem.Description = item.Description;
+            selectedItem.Amount = item.Amount;
+            
+            itemRepository.Update(selectedItem);
+        }
+
+        public void DeleteItem(Guid itemId)
+        {
+            if (itemId == Guid.Empty) return;
+
+            var selectedItem = itemRepository.GetById(itemId);
+
+            itemRepository.Delete(selectedItem);
+        }
+
+        public void DeleteCategory(Guid categoryId)
+        {
+            if (categoryId == Guid.Empty) return;
+
+            var selectedCategory = categoryRepository.Get(categoryId);
+
+            var selectedItems = itemRepository.GetAllItemsByCategory(categoryId);
+
+            foreach(var item in selectedItems)
+            {
+                itemRepository.Delete(item);
+            }
+
+            categoryRepository.Delete(selectedCategory);
         }
     }
 }
