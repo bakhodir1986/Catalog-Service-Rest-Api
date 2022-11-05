@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 
 namespace Catalog_Service_BLL
 {
-    public class CategoryService
+    public class CategoryService : ICategoryService
     {
         private readonly ICategoryRepository categoryRepository;
         private readonly IItemRepository itemRepository;
 
-        public CategoryService(ICategoryRepository categoryRepository, 
+        public CategoryService(ICategoryRepository categoryRepository,
             IItemRepository itemRepository)
         {
             this.categoryRepository = categoryRepository;
@@ -23,21 +23,22 @@ namespace Catalog_Service_BLL
             return categoryRepository.GetAll();
         }
 
-        public IEnumerable<Item> GetItems(Guid categoryId)
+        public IEnumerable<Item> GetItems(Guid categoryId, int page)
         {
             if (categoryId == Guid.Empty) throw new ArgumentNullException("categoryId");
-            return itemRepository.GetAllItemsByCategory(categoryId);
+            return itemRepository.GetItemsByCategory(categoryId, page);
         }
 
-        public void AddCategory(string name, Guid parentId)
+        public void AddCategory(Category _category)
         {
-            if (string.IsNullOrEmpty(name)) throw new ArgumentNullException("name");
-            
+            if (_category == null) throw new ArgumentNullException("_category");
+
             Category category = new()
             {
                 Id = Guid.NewGuid(),
-                Name = name,
-                Parent = categoryRepository.Get(parentId)
+                Name = _category.Name,
+                Image = _category.Image,
+                Parent = categoryRepository.Get(_category.Parent.Id)
             };
 
             categoryRepository.Add(category);
@@ -71,7 +72,7 @@ namespace Catalog_Service_BLL
             selectedItem.Price = item.Price;
             selectedItem.Description = item.Description;
             selectedItem.Amount = item.Amount;
-            
+
             itemRepository.Update(selectedItem);
         }
 
@@ -92,7 +93,7 @@ namespace Catalog_Service_BLL
 
             var selectedItems = itemRepository.GetAllItemsByCategory(categoryId);
 
-            foreach(var item in selectedItems)
+            foreach (var item in selectedItems)
             {
                 itemRepository.Delete(item);
             }

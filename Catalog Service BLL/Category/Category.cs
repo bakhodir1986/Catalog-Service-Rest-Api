@@ -20,6 +20,6 @@ namespace Catalog_Service_BLL
             }
         }
         public string Image { get; set; }
-        public Category Parent { get; set; }
+        public Category? Parent { get; set; }
     }
 }

@@ -4,6 +4,7 @@ namespace Catalog_Service_DAL
 {
     public class ItemRepository : IItemRepository
     {
+        private int elementsInPage = 10;
         public void Add(Item item)
         {
             using (var context = new CatalogDbContext())
@@ -22,11 +23,13 @@ namespace Catalog_Service_DAL
             }
         }
 
-        public IEnumerable<Item> GetAllItemsByCategory(Guid categoryId)
+        public IEnumerable<Item> GetItemsByCategory(Guid categoryId, int page)
         {
             using (var context = new CatalogDbContext())
             {
-                return context.Items.Where(x => x.Category.Id == categoryId);
+                return context.Items.Where(x => x.Category.Id == categoryId).
+                    Skip(page * elementsInPage).
+                    Take(elementsInPage);
             }
         }
 
@@ -44,6 +47,14 @@ namespace Catalog_Service_DAL
             {
                 context.Items.Update(item);
                 context.SaveChanges();
+            }
+        }
+
+        public IEnumerable<Item> GetAllItemsByCategory(Guid categoryId)
+        {
+            using (var context = new CatalogDbContext())
+            {
+                return context.Items.Where(x => x.Category.Id == categoryId);
             }
         }
     }
