@@ -1,4 +1,5 @@
 ﻿using Catalog_Service_BLL;
+using Catalog_Service_Rest_Api.HATEOAS;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Catalog_Service_Rest_Api.Controllers
@@ -8,22 +9,24 @@ namespace Catalog_Service_Rest_Api.Controllers
     public class CategoryController : ControllerBase
     {
         private readonly ICategoryService categoryService;
+        private readonly IUrlHelper urlHelper;
 
-        public CategoryController(ICategoryService categoryService)
+        public CategoryController(ICategoryService categoryService, IUrlHelper injectedUrlHelper)
         {
             this.categoryService = categoryService;
+            this.urlHelper = injectedUrlHelper;
         }
 
-        [HttpGet]
+        [HttpGet(Name = nameof(Get))]
         public IEnumerable<Category> Get()
         {
-            return categoryService.GetCategories();
+            return categoryService.GetCategories().Select(x => CreateLinksForCategory(x));
         }
 
-        [HttpGet("{categoryid}/items/{page}")]
+        [HttpGet("{categoryid}/items/{page}", Name = nameof(GetItems))]
         public IEnumerable<Item> GetItems([FromRoute] string categoryid, [FromRoute] int page)
         {
-            return categoryService.GetItems(new Guid(categoryid), page);
+            return categoryService.GetItems(new Guid(categoryid), page).Select(x => CreateLinksForItem(x));
         }
 
         [HttpPost]
@@ -83,6 +86,58 @@ namespace Catalog_Service_Rest_Api.Controllers
             categoryService.DeleteItem(new Guid(itemId));
 
             return Ok();
+        }
+
+        private Category CreateLinksForCategory(Category category)
+        {
+            var idObj = new { id = category.Id };
+            category.Links.Add(
+                new LinkDto(this.urlHelper.Link(nameof(this.Get), idObj),
+                "self",
+                "GET"));
+
+            category.Links.Add(
+                new LinkDto(this.urlHelper.Link(nameof(this.Post), idObj),
+                "post_category",
+                "POST"));
+
+            category.Links.Add(
+                new LinkDto(this.urlHelper.Link(nameof(this.Put), idObj),
+                "put_category",
+                "PUT"));
+
+            category.Links.Add(
+                new LinkDto(this.urlHelper.Link(nameof(this.Delete), idObj),
+                "delete_category",
+                "DELETE"));
+
+            return category;
+        }
+
+        private Item CreateLinksForItem(Item category)
+        {
+            var idObj = new { id = category.Id };
+            category.Links.Add(
+                new LinkDto(this.urlHelper.Link(nameof(this.GetItems), idObj),
+                "self",
+                "GET"));
+
+            category.Links.Add(
+                new LinkDto(this.urlHelper.Link(nameof(this.PostItem), idObj),
+                "post_item",
+                "POST"));
+
+            category.Links.Add(
+                new LinkDto(this.urlHelper.Link(nameof(this.PutItem), idObj),
+                "put_item",
+                "PUT"));
+
+            category.Links.Add(
+                new LinkDto(this.urlHelper.Link(nameof(this.DeleteItem), idObj),
+                "delete_item",
+                "DELETE"));
+
+            return category;
         }
 
     }
